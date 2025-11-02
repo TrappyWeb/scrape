@@ -16,23 +16,39 @@ require __DIR__.'/../vendor/autoload.php';
 use App\Scrapper\Browser\CreateBrowser;
 use HeadlessChromium\Page;
 
+const TOKEN = 'b0f2d07a-f50b-40eb-8d4b-44561b68287d';
+
+function error(string $error): never
+{
+    header('Content-Type: application/json');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    http_response_code(404);
+    exit(json_encode(['error' => $error]));
+}
+
+$url = $_GET['url'];
+$token = $_GET['token'] ?? false;
+$timeout = $_GET['timeout'] ?? 30;
+
+if ($token !== TOKEN) {
+    error('Authentication token not provided.');
+}
+
 try {
     $browser = CreateBrowser::create();
-
-    $uri = $_GET['uri'];
 
     $page = $browser
         ->browser()
         ->createPage();
     $page
-        ->navigate($uri)
+        ->navigate($url)
         ->waitForNavigation(Page::DOM_CONTENT_LOADED);
     $content = $page->getHtml();
     $browser->browser()->close();
 
     exit($content);
 } catch (RuntimeException $e) {
-    exit($e);
+    error($e->getMessage());
 } catch (Exception $e) {
-    exit($e->getMessage());
+    error($e->getMessage());
 }
