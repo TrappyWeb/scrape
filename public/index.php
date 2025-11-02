@@ -12,3 +12,27 @@
 */
 
 require __DIR__.'/../vendor/autoload.php';
+
+use App\Scrapper\Browser\CreateBrowser;
+use HeadlessChromium\Page;
+
+try {
+    $browser = CreateBrowser::create();
+
+    $uri = $_GET['uri'];
+
+    $page = $browser
+        ->browser()
+        ->createPage();
+    $page
+        ->navigate($uri)
+        ->waitForNavigation(Page::DOM_CONTENT_LOADED);
+    $content = $page->getHtml();
+    $browser->browser()->close();
+
+    exit($content);
+} catch (RuntimeException $e) {
+    throw $e;
+} catch (Exception $e) {
+    exit($e->getMessage());
+}
