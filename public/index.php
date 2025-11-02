@@ -32,7 +32,7 @@ try {
 
     exit($content);
 } catch (RuntimeException $e) {
-    throw $e;
+    exit($e);
 } catch (Exception $e) {
     exit($e->getMessage());
 }
