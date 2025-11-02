@@ -13,25 +13,18 @@
 
 require __DIR__.'/../vendor/autoload.php';
 
+use App\Http\AuthToken;
+use App\Http\Response;
+use App\Http\Status;
 use App\Scrapper\Browser\CreateBrowser;
 use HeadlessChromium\Page;
 
-const TOKEN = 'b0f2d07a-f50b-40eb-8d4b-44561b68287d';
-
-function error(string $error): never
-{
-    header('Content-Type: application/json');
-    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-    http_response_code(404);
-    exit(json_encode(['error' => $error]));
-}
-
 $url = $_GET['url'];
-$token = $_GET['token'] ?? false;
-$timeout = $_GET['timeout'] ?? 30;
 
-if ($token !== TOKEN) {
-    error('Authentication token not provided.');
+if (AuthToken::validate(array_key_exists('token', $_GET) ? $_GET['token'] : null) === false) {
+    Response::json([
+        'error' => 'Authentication token not provided.'
+    ], Status::HTTP_UNAUTHORIZED);
 }
 
 try {
@@ -48,7 +41,11 @@ try {
 
     exit($content);
 } catch (RuntimeException $e) {
-    error($e->getMessage());
+    Response::json([
+        'error' => $e->getMessage()
+    ], Status::HTTP_UNAUTHORIZED);
 } catch (Exception $e) {
-    error($e->getMessage());
+    Response::json([
+        'error' => $e->getMessage()
+    ], Status::HTTP_UNAUTHORIZED);
 }
